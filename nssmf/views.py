@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+#插入需要套件
 import os
 import yaml
 import json
@@ -21,6 +22,7 @@ import shutil
 import zipfile
 import importlib
 
+#插入框架需要套件
 from django.http import JsonResponse, Http404, HttpResponse
 from rest_framework.response import Response
 from rest_framework import status, mixins
@@ -29,6 +31,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
+#插入 Model, Serializer, Enums
 from nssmf.serializers import SliceTemplateSerializer, SliceTemplateRelationSerializer, \
     GenericTemplateSerializer, GenericTemplateFileSerializer, ServiceMappingPluginSerializer, \
     ServiceMappingPluginRelationSerializer
@@ -66,22 +69,22 @@ class MultipleSerializerViewSet(ModelViewSet):
             return SliceTemplateSerializer
 
 
-class GenericTemplateView(MultipleSerializerViewSet):
+class GenericTemplateView(MultipleSerializerViewSet): # class GenericTemplateView 繼承 MultipleSerializerViewSet
     """ Generic Template
     """
-    queryset = GenericTemplate.objects.all()
-    serializer_class = MultipleSerializerViewSet.get_serializer_class
+    queryset = GenericTemplate.objects.all() #宣告 queryset 為 Model GenericTemplate 的所有資料
+    serializer_class = MultipleSerializerViewSet.get_serializer_class #宣告 serializer_class 為 MultipleSerializerViewSet.get_serializer_class 函式
 
     @staticmethod
     def check(request, content, filename):
         # Check content isn't exist Content
-        for query in Content.objects.all():
-            if str(content['topology_template']) in query.topology_template and \
-                    request.data['nfvoType'] in query.templateId.nfvoType:
+        for query in Content.objects.all(): #迴圈 query 在 Model Content 的資料中
+            if str(content['topology_template']) in query.topology_template and \ #如果 Serializer content 轉成的字串的 topology_template 欄位的值在 query 的 topology_templatey 資料集中
+                    request.data['nfvoType'] in query.templateId.nfvoType: #以及 request 的 nfvoType 欄位的值在 query 的 templateId.nfvoType 欄位資料中
                 response = {
                     OperationStatus.OPERATION_FAILED: request.data[
-                                                          'templateType'] + ' is exist ' + filename}
-                return response
+                                                          'templateType'] + ' is exist ' + filename} #若上述條件成立，則 response 為 Enums OperationStatus 的 OPERATION_FAILED
+                return response #返回 return 值
 
     def list(self, request, *args, **kwargs):
         """
