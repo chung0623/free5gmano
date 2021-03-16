@@ -6,50 +6,50 @@ import zipfile
 import yaml
 import os
 
-
-class ContentSerializer(serializers.ModelSerializer):
+#通用切片內容
+class ContentSerializer(serializers.ModelSerializer): #通用切片內容序列器
     class Meta:
-        model = Content
-        fields = ['contentId', 'type', 'tosca_definitions_version', 'topology_template']
+        model = Content #指定序列器所用的Model
+        fields = ['contentId', 'type', 'tosca_definitions_version', 'topology_template'] #指定此序列器包含的欄位
 
-
-class GenericTemplateSerializer(serializers.ModelSerializer):
+#創建、上傳通用樣板
+class GenericTemplateSerializer(serializers.ModelSerializer): #通用切片序列器
     content = ContentSerializer(many=True, read_only=True, source='content_set')
 
     class Meta:
-        model = GenericTemplate
+        model = GenericTemplate #指定序列器所用的Model
         fields = ['templateId', 'name', 'nfvoType', 'templateType', 'templateFile', 'content',
-                  'operationStatus', 'operationTime', 'description']
-        read_only_fields = ['templateFile']
+                  'operationStatus', 'operationTime', 'description'] #指定此序列器包含的欄位
+        read_only_fields = ['templateFile'] #指定此序列器唯讀時包含的欄位
 
-    def create(self, validated_data):
+    def create(self, validated_data): #創建通用樣板
         print(validated_data)
         return super().create(validated_data)
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data): #上傳通用樣板
         validated_data['operationStatus'] = OperationStatus.UPDATED
         print(validated_data)
         return super().update(instance, validated_data)
 
-
-class GenericTemplateFileSerializer(serializers.ModelSerializer):
+#通用樣板檔案資訊
+class GenericTemplateFileSerializer(serializers.ModelSerializer): #上傳通用樣板
 
     class Meta:
-        model = GenericTemplate
-        fields = ['templateId', 'templateFile', 'templateType', 'operationStatus', 'operationTime']
+        model = GenericTemplate #指定序列器所用的Model
+        fields = ['templateId', 'templateFile', 'templateType', 'operationStatus', 'operationTime'] #指定此序列器唯讀時包含的欄位
 
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data): #檢查是否能上傳
         # if not self.instance.templateType:
         #     raise serializers.ValidationError('This templateType field must be value.')
         validated_data['operationStatus'] = OperationStatus.UPLOAD
         return super().update(instance, validated_data)
 
-
-class GenericTemplateRelationSerializer(serializers.ModelSerializer):
+#通用樣板關係
+class GenericTemplateRelationSerializer(serializers.ModelSerializer): #通用樣板關係序列器
 
     class Meta:
-        model = GenericTemplate
-        fields = ['templateId', 'templateType', 'nfvoType']
+        model = GenericTemplate #指定序列器所用的Model
+        fields = ['templateId', 'templateType', 'nfvoType'] #指定此序列器唯讀時包含的欄位
 
 
 class SliceTemplateRelationSerializer(serializers.ModelSerializer):
