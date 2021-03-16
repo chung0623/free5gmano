@@ -1,8 +1,8 @@
-import ast 
-import threading
+import ast #ast模組幫助Python程式處理Python語法的抽象語法樹。
+import threading #threading模組建立子執行緒。
 import datetime #時間模組
-import base64
-import requests
+import base64 #base64模組是用來作base64編碼解碼的
+import requests #Python中使用requests模組建立各種 HTTP 請求
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -19,7 +19,7 @@ from nssmf.models import SliceTemplate
 from nssmf.serializers import SliceTemplateRelationSerializer
 from rest_framework.response import Response
 
-class TaskThread(threading.Thread):
+class TaskThread(threading.Thread): #當一個任務需要在一個單獨的線程上重複幾次時，TaskThread很有用
     def __init__(self, time_tick, callback_uri, notify_data):
         super().__init__()
         self.time_tick = time_tick
@@ -30,7 +30,7 @@ class TaskThread(threading.Thread):
     def run(self):
         import time
         # Get MOI values list
-        model = apps.get_model('moi', self.notify_data['objectClass'])
+        model = apps.get_model('moi', self.notify_data['objectClass']) #apps.get_model(app_label, model_name, require_ready=True)
         pre_value_list = list()
         object_queryset = model.objects.values()
         for query in object_queryset:
@@ -88,9 +88,9 @@ class TaskThread(threading.Thread):
         #     print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "%s" % (self.getName(),))
 
 
-class MultipleSerializerViewSet(ModelViewSet):
+class MultipleSerializerViewSet(ModelViewSet): #資料顯示
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
+        if self.action in ('list', 'retrieve'): 
             return SubscriptionRetrieveSerializer
         return SubscriptionSerializer
 
