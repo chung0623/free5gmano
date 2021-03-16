@@ -40,7 +40,7 @@ from nssmf.enums import OperationStatus, PluginOperationStatus
 from free5gmano import settings
 
 
-class CustomAuthToken(ObtainAuthToken):
+class CustomAuthToken(ObtainAuthToken): #身分驗證
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
