@@ -1,6 +1,6 @@
-import ast
+import ast 
 import threading
-import datetime
+import datetime #時間模組
 import base64
 import requests
 
