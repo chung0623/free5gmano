@@ -39,8 +39,8 @@ from nssmf.models import SliceTemplate, GenericTemplate, ServiceMappingPluginMod
 from nssmf.enums import OperationStatus, PluginOperationStatus
 from free5gmano import settings
 
-
-class CustomAuthToken(ObtainAuthToken): #身分驗證
+#身分驗證
+class CustomAuthToken(ObtainAuthToken): 
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
@@ -54,7 +54,7 @@ class CustomAuthToken(ObtainAuthToken): #身分驗證
             'email': user.email
         })
 
-
+#利用basename與action來做url的分流
 class MultipleSerializerViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.basename == 'GenericTemplate':
