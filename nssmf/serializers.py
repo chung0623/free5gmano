@@ -36,7 +36,7 @@ class GenericTemplateFileSerializer(serializers.ModelSerializer): #上傳通用�
 
     class Meta:
         model = GenericTemplate #指定序列器所用的Model
-        fields = ['templateId', 'templateFile', 'templateType', 'operationStatus', 'operationTime'] #指定此序列器唯讀時包含的欄位
+        fields = ['templateId', 'templateFile', 'templateType', 'operationStatus', 'operationTime'] #指定此序列器包含的欄位
 
     def update(self, instance, validated_data): #上傳通用樣板檔案
         # if not self.instance.templateType:
@@ -49,7 +49,7 @@ class GenericTemplateRelationSerializer(serializers.ModelSerializer): #通用樣
 
     class Meta:
         model = GenericTemplate #指定序列器所用的Model
-        fields = ['templateId', 'templateType', 'nfvoType'] #指定此序列器唯讀時包含的欄位
+        fields = ['templateId', 'templateType', 'nfvoType'] #指定此序列器包含的欄位
 
 #切片樣板關係
 class SliceTemplateRelationSerializer(serializers.ModelSerializer):
@@ -57,7 +57,7 @@ class SliceTemplateRelationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SliceTemplate #指定序列器所用的Model
-        fields = '__all__' #指定此序列器唯讀時包含的欄位
+        fields = '__all__' #指定此序列器包含的欄位
 
     @property
     def data(self):
@@ -75,7 +75,7 @@ class SliceTemplateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SliceTemplate #指定序列器所用的Model
-        fields = '__all__' #指定此序列器唯讀時包含的欄位
+        fields = '__all__' #指定此序列器包含的欄位
 
     def create(self, validated_data): #創建切片樣板資訊
         return super().create(validated_data)
@@ -99,8 +99,8 @@ class ServiceMappingPluginSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
     class Meta:
-        model = ServiceMappingPluginModel
-        fields = '__all__'
+        model = ServiceMappingPluginModel #指定序列器所用的Model
+        fields = '__all__' #指定此序列器包含的欄位
 
     def create(self, validated_data):
         response_data = dict()
