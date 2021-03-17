@@ -12,7 +12,7 @@ class ContentSerializer(serializers.ModelSerializer): #通用切片內容序列�
         model = Content #指定序列器所用的Model
         fields = ['contentId', 'type', 'tosca_definitions_version', 'topology_template'] #指定此序列器包含的欄位
 
-#創建、上傳通用樣板
+#創建、上傳通用樣板資訊
 class GenericTemplateSerializer(serializers.ModelSerializer): #通用切片序列器
     content = ContentSerializer(many=True, read_only=True, source='content_set')
 
@@ -22,27 +22,27 @@ class GenericTemplateSerializer(serializers.ModelSerializer): #通用切片序�
                   'operationStatus', 'operationTime', 'description'] #指定此序列器包含的欄位
         read_only_fields = ['templateFile'] #指定此序列器唯讀時包含的欄位
 
-    def create(self, validated_data): #創建通用樣板
+    def create(self, validated_data): #創建通用樣板資訊
         print(validated_data)
         return super().create(validated_data)
 
-    def update(self, instance, validated_data): #上傳通用樣板
+    def update(self, instance, validated_data): #上傳通用樣板資訊
         validated_data['operationStatus'] = OperationStatus.UPDATED
         print(validated_data)
         return super().update(instance, validated_data)
 
-#通用樣板檔案資訊
+#上傳通用樣板檔案
 class GenericTemplateFileSerializer(serializers.ModelSerializer): #上傳通用樣板
 
     class Meta:
         model = GenericTemplate #指定序列器所用的Model
         fields = ['templateId', 'templateFile', 'templateType', 'operationStatus', 'operationTime'] #指定此序列器唯讀時包含的欄位
 
-    def update(self, instance, validated_data): #檢查是否能上傳
+    def update(self, instance, validated_data): #上傳通用樣板檔案
         # if not self.instance.templateType:
         #     raise serializers.ValidationError('This templateType field must be value.')
-        validated_data['operationStatus'] = OperationStatus.UPLOAD
-        return super().update(instance, validated_data)
+        validated_data['operationStatus'] = OperationStatus.UPLOAD #更改operationStatus狀態
+        return super().update(instance, validated_data) #上傳檔案
 
 #通用樣板關係
 class GenericTemplateRelationSerializer(serializers.ModelSerializer): #通用樣板關係序列器
@@ -51,13 +51,13 @@ class GenericTemplateRelationSerializer(serializers.ModelSerializer): #通用樣
         model = GenericTemplate #指定序列器所用的Model
         fields = ['templateId', 'templateType', 'nfvoType'] #指定此序列器唯讀時包含的欄位
 
-
+#切片樣板關係
 class SliceTemplateRelationSerializer(serializers.ModelSerializer):
-    genericTemplates = GenericTemplateRelationSerializer(many=True, read_only=True)
+    genericTemplates = GenericTemplateRelationSerializer(many=True, read_only=True) #抓取用樣板關係資料
 
     class Meta:
-        model = SliceTemplate
-        fields = '__all__'
+        model = SliceTemplate #指定序列器所用的Model
+        fields = '__all__' #指定此序列器唯讀時包含的欄位
 
     @property
     def data(self):
@@ -70,20 +70,20 @@ class SliceTemplateRelationSerializer(serializers.ModelSerializer):
         serialized_data['genericTemplates'] = custom_representation
         return serialized_data
 
-
+#創建切片樣板資訊
 class SliceTemplateSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = SliceTemplate
-        fields = '__all__'
+        model = SliceTemplate #指定序列器所用的Model
+        fields = '__all__' #指定此序列器唯讀時包含的欄位
 
-    def create(self, validated_data):
+    def create(self, validated_data): #創建切片樣板資訊
         return super().create(validated_data)
 
-
+#創建、上傳服務映射樣板
 class ServiceMappingPluginSerializer(serializers.ModelSerializer):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs): 
         if 'context' in kwargs.keys():
             view = kwargs['context']['view']
             if view.action == 'list':
@@ -163,14 +163,14 @@ class ServiceMappingPluginSerializer(serializers.ModelSerializer):
         response_data['status'] = PluginOperationStatus.ERROR
         raise Exception(response_data)
 
-
+#服務映射序列器
 class ServiceMappingPluginRelationSerializer(serializers.ModelSerializer):
     genericTemplates = GenericTemplateRelationSerializer(many=True, read_only=True)
     nfvoType = ServiceMappingPluginSerializer(many=True, read_only=True)
 
     class Meta:
-        model = SliceTemplate
-        fields = '__all__'
+        model = SliceTemplate #指定序列器所用的Model
+        fields = '__all__' #指定此序列器唯讀時包含的欄位
 
     @property
     def data(self):
