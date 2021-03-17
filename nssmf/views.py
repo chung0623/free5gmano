@@ -57,10 +57,10 @@ class CustomAuthToken(ObtainAuthToken):
 #利用basename與action來做url的分流
 class MultipleSerializerViewSet(ModelViewSet):
     def get_serializer_class(self):
-        if self.basename == 'GenericTemplate':
+        if self.basename == 'GenericTemplate': 
             if self.action == 'upload':
                 return GenericTemplateFileSerializer
-            return GenericTemplateSerializer
+            return GenericTemplateSerializer 
         elif self.basename == 'SliceTemplate':
             if self.action in ('retrieve', 'list'):
                 return SliceTemplateRelationSerializer
@@ -69,22 +69,22 @@ class MultipleSerializerViewSet(ModelViewSet):
             return SliceTemplateSerializer
 
 
-class GenericTemplateView(MultipleSerializerViewSet): # class GenericTemplateView 繼承 MultipleSerializerViewSet
+class GenericTemplateView(MultipleSerializerViewSet): 
     """ Generic Template
     """
-    queryset = GenericTemplate.objects.all() #宣告 queryset 為 Model GenericTemplate 的所有資料
-    serializer_class = MultipleSerializerViewSet.get_serializer_class #宣告 serializer_class 為 MultipleSerializerViewSet.get_serializer_class 函式
+    queryset = GenericTemplate.objects.all() #用queryset抓取GenericTemplate的Model資料
+    serializer_class = MultipleSerializerViewSet.get_serializer_class #用serializer_class抓取Serializer中對應的資料，因為get_serializer_class有判斷式，因此會自動抓取對應資料
 
     @staticmethod
     def check(request, content, filename):
         # Check content isn't exist Content
-        for query in Content.objects.all(): #迴圈 query 在 Model Content 的資料中
-            if str(content['topology_template']) in query.topology_template and \ #如果 Serializer content 轉成的字串的 topology_template 欄位的值在 query 的 topology_templatey 資料集中
+        for query in Content.objects.all(): #迴圈query抓取Content的資料
+            if str(content['topology_template']) in query.topology_template and \ #如果content的topology_template欄位轉成的字串在 query 的 topology_templatey 資料集中
                     request.data['nfvoType'] in query.templateId.nfvoType: #以及 request 的 nfvoType 欄位的值在 query 的 templateId.nfvoType 欄位資料中
                 response = {
                     OperationStatus.OPERATION_FAILED: request.data[
                                                           'templateType'] + ' is exist ' + filename} #若上述條件成立，則 response 為 Enums OperationStatus 的 OPERATION_FAILED
-                return response #返回 return 值
+                return response #返回response值
 
     def list(self, request, *args, **kwargs):
         """
@@ -92,7 +92,7 @@ class GenericTemplateView(MultipleSerializerViewSet): # class GenericTemplateVie
 
             The GET method queries the information of the Generic Template matching the filter.
         """
-        return super().list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs) #利用super()呼叫GenericTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用list
 
     def create(self, request, *args, **kwargs):
         """
@@ -100,7 +100,7 @@ class GenericTemplateView(MultipleSerializerViewSet): # class GenericTemplateVie
 
             The POST method creates a new individual Generic Template resource.
         """
-        return super().create(request, *args, **kwargs)
+        return super().create(request, *args, **kwargs) #利用super()呼叫GenericTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用create
 
     def retrieve(self, request, *args, **kwargs):
         """
@@ -108,7 +108,7 @@ class GenericTemplateView(MultipleSerializerViewSet): # class GenericTemplateVie
 
             The GET method reads the information of a Generic Template.
         """
-        return super().retrieve(request, *args, **kwargs)
+        return super().retrieve(request, *args, **kwargs) #利用super()呼叫GenericTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用retrieve
 
     def update(self, request, *args, **kwargs):
         """
@@ -116,7 +116,7 @@ class GenericTemplateView(MultipleSerializerViewSet): # class GenericTemplateVie
 
             The PATCH method updates the information of a Generic Template.
         """
-        return super().update(request, *args, **kwargs)
+        return super().update(request, *args, **kwargs) #利用super()呼叫GenericTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用update
 
     def destroy(self, request, *args, **kwargs):
         """
@@ -124,14 +124,14 @@ class GenericTemplateView(MultipleSerializerViewSet): # class GenericTemplateVie
 
             The DELETE method deletes an individual Generic Template resource.
         """
-        file = self.get_object().templateFile
+        file = self.get_object().templateFile #self.get_object().templateFile抓取GenericTemplate Model的templateFile
         if file:
-            file_folder = os.path.join(
+            file_folder = os.path.join( #抓取檔案路徑
                 settings.MEDIA_ROOT,
                 os.path.dirname(str(self.get_object().templateFile)),
                 str(self.get_object().templateId)
             )
-            shutil.rmtree(file_folder)
+            shutil.rmtree(file_folder) #shutil.rmtree path指向file_folder目錄，刪除整個完整目錄
             file.delete()
         return super().destroy(request, *args, **kwargs)
 
