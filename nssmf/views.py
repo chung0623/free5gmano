@@ -17,16 +17,17 @@
 #插入需要套件
 import os
 import yaml
-import json
-import shutil
-import zipfile
-import importlib
+import json #json模組
+import shutil #shutil模組提供了一系列對文件和文件集合的高階操作。特別是提供了一些支持文件拷貝和刪除的函數。
+import zipfile #Zip模組
+import importlib #importlib模組的目的有兩個。第一個目的是在Python源代碼中提供import語句的實現（並且因此而擴展__import__()函數）。這提供了一個可移植到任何Python解釋器的import實現。相比使用Python以外的編程語言實現方式，這一實現更加易於理解。
+                 #第二個目的是實現import的部分被公開在這個包中，使得用戶更容易創建他們自己的自定義對象(通常被稱為importer )來參與到導入過程中。
 
 #插入框架需要套件
 from django.http import JsonResponse, Http404, HttpResponse
 from rest_framework.response import Response
 from rest_framework import status, mixins
-from rest_framework.decorators import action
+from rest_framework.decorators import action #REST Framework提供list,create,retrieve,update,partial_update,destroy等操作
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -68,7 +69,7 @@ class MultipleSerializerViewSet(ModelViewSet):
         elif self.basename == 'Provisioning':
             return SliceTemplateSerializer
 
-
+#通用樣板
 class GenericTemplateView(MultipleSerializerViewSet): 
     """ Generic Template
     """
@@ -126,12 +127,12 @@ class GenericTemplateView(MultipleSerializerViewSet):
         """
         file = self.get_object().templateFile #self.get_object().templateFile抓取GenericTemplate Model的templateFile
         if file:
-            file_folder = os.path.join( #抓取檔案路徑
-                settings.MEDIA_ROOT,
+            file_folder = os.path.join( #利用os.path.join()函數，組合多個路徑，以抓取完整檔案路徑
+                settings.MEDIA_ROOT, #有了上面這個路由設置，我們就可以在瀏覽器的地址欄根據media文件夾中文件的路徑去訪問對應的文件了
                 os.path.dirname(str(self.get_object().templateFile)),
                 str(self.get_object().templateId)
             )
-            shutil.rmtree(file_folder) #shutil.rmtree path指向file_folder目錄，刪除整個完整目錄
+            shutil.rmtree(file_folder) #shutil.rmtree path指向file_folder目錄，刪除整個資料夾樹，也就是，它可以刪除資料夾下的所有檔案和子資料夾。
             file.delete()
         return super().destroy(request, *args, **kwargs)
 
@@ -141,24 +142,24 @@ class GenericTemplateView(MultipleSerializerViewSet):
 
             The PUT method uploads the content of a Generic Template.
         """
-        path = os.path.join(
-            settings.MEDIA_ROOT,
+        path = os.path.join( #利用os.path.join()函數，組合多個路徑，以抓取完整檔案路徑
+            settings.MEDIA_ROOT, #有了上面這個路由設置，我們就可以在瀏覽器的地址欄根據media文件夾中文件的路徑去訪問對應的文件了
             request.data['templateType'],
             str(kwargs['pk'])
         )
         generic_template_obj = self.get_object()
         # Delete old Content related
-        for relate_obj in self.get_object().content_set.all():
+        for relate_obj in self.get_object().content_set.all(): #查看關聯的內容數據
             file = self.get_object().templateFile
             file.delete()
-            self.get_object().content_set.remove(relate_obj)
+            self.get_object().content_set.remove(relate_obj) #刪除舊的關聯資料
             
-        with zipfile.ZipFile(request.data['templateFile']) as _zipfile:
-            for element in _zipfile.namelist():
-                if '.yaml' in element:
-                    with _zipfile.open(element) as file:
-                        content = yaml.load(file, Loader=yaml.FullLoader)
-                        content_obj = Content(type=self.get_object().templateType,
+        with zipfile.ZipFile(request.data['templateFile']) as _zipfile: #利用zipfile.ZipFile()函數將request.data['templateFile']轉為zip檔，並宣告為_zipfile
+            for element in _zipfile.namelist(): #宣告element在_zipFile.namelist()函數所獲取的該zip檔所有檔案資訊
+                if '.yaml' in element: #若element含有yaml檔
+                    with _zipfile.open(element) as file: #zipfile.open()以二進製文件類對象的形式訪問一個歸檔成員。name可以是歸檔內某個文件的名稱也可以是某個ZipInfo對象
+                        content = yaml.load(file, Loader=yaml.FullLoader) #宣告content為yaml.load()函數得到file的內容
+                        content_obj = Content(type=self.get_object().templateType, #宣告content_obj為Content Model的資訊
                                               tosca_definitions_version=content['tosca_definitions_version'],
                                               topology_template=str(content['topology_template']))
                     # check_result = self.check(request, content, filename)
@@ -166,18 +167,18 @@ class GenericTemplateView(MultipleSerializerViewSet):
                     # if check_result:
                     #     return Response(check_result, status=400)
 
-                    content_obj.save()
-                    generic_template_obj.content_set.add(content_obj)
-                elif '.json' in element:
-                    with _zipfile.open(element) as file:
-                        content = json.loads(file.read().decode('utf-8'))
-                    content_obj = Content(type=self.get_object().templateType,
+                    content_obj.save() #儲存content_obj
+                    generic_template_obj.content_set.add(content_obj) #generic_template_obj新增content_obj
+                elif '.json' in element: #若element含有json檔
+                    with _zipfile.open(element) as file: #zipfile.open()以二進製文件類對象的形式訪問一個歸檔成員。name可以是歸檔內某個文件的名稱也可以是某個ZipInfo對象。
+                        content = json.loads(file.read().decode('utf-8')) #content為file轉為utf-8格式的資料
+                    content_obj = Content(type=self.get_object().templateType, #宣告content_obj為Content Model的資訊
                                           tosca_definitions_version="None",
                                           topology_template=str(content))
-                    content_obj.save()
-                    generic_template_obj.content_set.add(content_obj)
-            _zipfile.extractall(path=path)
-        self.partial_update(request, *args, **kwargs)
+                    content_obj.save() #儲存content_obj
+                    generic_template_obj.content_set.add(content_obj) #generic_template_obj新增content_obj
+            _zipfile.extractall(path=path) #利用zipfile.extractall()來解壓縮zip檔
+        self.partial_update(request, *args, **kwargs) #partial update()可以將request要求的修改完成後，傳到後台進行資料修改
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'], url_path='example_download/(?P<example>(.)*)/(?P<path>(.)*)')
@@ -187,7 +188,7 @@ class GenericTemplateView(MultipleSerializerViewSet):
 
             The GET method reads the content of the Generic Template.
         """
-        source_path = os.getcwd()
+        source_path = os.getcwd() #os.getcwd() 方法用於返回當前工作目錄。
         # download_query = self.queryset.filter(templateFile=kwargs['path'])
         # if download_query:
         #     with download_query[0].templateFile.open() as f:
@@ -195,10 +196,10 @@ class GenericTemplateView(MultipleSerializerViewSet):
         # else:
         example_file = os.path.join(settings.BASE_DIR, 'nssmf', 'template_example',
                                     kwargs['example'], kwargs['path'].split('/')[0])
-        os.chdir(example_file)
+        os.chdir(example_file) #e/ 更換路徑到example_file檔案目錄
 
         with zipfile.ZipFile(example_file + '.zip', mode='w',
-                             compression=zipfile.ZIP_DEFLATED) as zf:
+                             compression=zipfile.ZIP_DEFLATED) as zf: #建立新檔案
             for root, folders, files in os.walk('.'):
                 for s_file in files:
                     a_file = os.path.join(root, s_file)
@@ -214,9 +215,9 @@ class GenericTemplateView(MultipleSerializerViewSet):
 
             The GET method reads the content of the Generic Template.
         """
-        download_query = self.queryset.filter(templateFile=kwargs['path'])
-        s = download_query[0].templateFile.name
-        filename = s[4:]
+        download_query = self.queryset.filter(templateFile=kwargs['path']) #宣告download_query為queryset中templateFile=kwargs['path']的資料
+        s = download_query[0].templateFile.name #s為download_query[0]的templateFile.name
+        filename = s[4:] #filename取最後四個以外元素的資料
         if download_query:
             with download_query[0].templateFile.open() as f:
                 # return HttpResponse(f.read(), content_type="application/zip")
@@ -224,21 +225,21 @@ class GenericTemplateView(MultipleSerializerViewSet):
                 response['Content-Disposition'] = 'inline; filename=' + filename
                 return response
 
-
+#切片樣板
 class SliceTemplateView(MultipleSerializerViewSet):
     """
         Slice Template
     """
-    queryset = SliceTemplate.objects.all()
-    serializer_class = MultipleSerializerViewSet.get_serializer_class
+    queryset = SliceTemplate.objects.all() #用queryset抓取GenericTemplate的Model資料
+    serializer_class = MultipleSerializerViewSet.get_serializer_class #用serializer_class抓取Serializer中對應的資料，因為get_serializer_class有判斷式，因此會自動抓取對應資料
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs): 
         """
             Query Slice Template information.
 
             The GET method queries the information of the Slice Template matching the filter.
         """
-        return super().list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs) #利用super()呼叫SliceTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用list
 
     def create(self, request, *args, **kwargs):
         """
@@ -246,7 +247,7 @@ class SliceTemplateView(MultipleSerializerViewSet):
 
             The POST method creates a new individual Slice Template resource.
         """
-        return super().create(request, *args, **kwargs)
+        return super().create(request, *args, **kwargs) #利用super()呼叫SliceTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用create
 
     def retrieve(self, request, *args, **kwargs):
         """
@@ -254,7 +255,7 @@ class SliceTemplateView(MultipleSerializerViewSet):
 
             The GET method reads the information of a Slice Template.
         """
-        return super().retrieve(request, *args, **kwargs)
+        return super().retrieve(request, *args, **kwargs) #利用super()呼叫SliceTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用retrieve
 
     def update(self, request, *args, **kwargs):
         """
@@ -262,7 +263,7 @@ class SliceTemplateView(MultipleSerializerViewSet):
 
             The PATCH method updates the information of a Slice Template.
         """
-        return super().update(request, *args, **kwargs)
+        return super().update(request, *args, **kwargs) #利用super()呼叫SliceTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用update
 
     def destroy(self, request, *args, **kwargs):
         """
@@ -270,7 +271,7 @@ class SliceTemplateView(MultipleSerializerViewSet):
 
             The DELETE method deletes an individual Slice Template resource.
         """
-        return super().destroy(request, *args, **kwargs)
+        return super().destroy(request, *args, **kwargs) #利用super()呼叫SliceTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用destroy
 
 
 class ProvisioningView(GenericViewSet, mixins.CreateModelMixin, mixins.DestroyModelMixin):
