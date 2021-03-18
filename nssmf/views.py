@@ -209,7 +209,7 @@ class GenericTemplateView(MultipleSerializerViewSet):
         os.chdir(source_path)
         with open(example_file + '.zip', 'rb') as f:
             return HttpResponse(f.read(), content_type="application/zip")
-
+    #舊的
     @action(detail=False, methods=['get'], url_path='download/(?P<path>(.)*)')
     def download(self, request, *args, **kwargs):
         """
@@ -363,11 +363,12 @@ class ProvisioningView(GenericViewSet, mixins.CreateModelMixin, mixins.DestroyMo
         except TypeError:
             return JsonResponse(response_data, status=400)
 
+#服務映射插件
 class ServiceMappingPluginView(ModelViewSet):
     """ Service Mapping Plugin framework
     """
-    queryset = ServiceMappingPluginModel.objects.all()
-    serializer_class = ServiceMappingPluginSerializer
+    queryset = ServiceMappingPluginModel.objects.all() #用queryset抓取ServiceMappingPluginModel的Model資料
+    serializer_class = ServiceMappingPluginSerializer #用serializer_class抓取Serializer中對應的資料，因為get_serializer_class有判斷式，因此會自動抓取對應資料
     response_data = dict()
 
     def list(self, request, *args, **kwargs):
@@ -409,7 +410,7 @@ class ServiceMappingPluginView(ModelViewSet):
 
             The DELETE method deletes an individual Service Mapping Plugin resource.
         """
-        self_object = self.get_object()
+        self_object = self.get_object() #用self_object抓取ServiceMappingPluginModel Model資料
         file = self_object.pluginFile
         if file:
             file_folder = os.path.join(
