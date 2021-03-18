@@ -275,14 +275,14 @@ class SliceTemplateView(MultipleSerializerViewSet):
         """
         return super().destroy(request, *args, **kwargs) #利用super()呼叫SliceTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用destroy
 
-
+#監控網路切片實例
 class ProvisioningView(GenericViewSet, mixins.CreateModelMixin, mixins.DestroyModelMixin):
     """ Provisioning Network Slice Instance
     """
-    queryset = SliceTemplate.objects.all()
-    serializer_class = ServiceMappingPluginRelationSerializer
+    queryset = SliceTemplate.objects.all() #用queryset抓取SliceTemplate的Model資料
+    serializer_class = ServiceMappingPluginRelationSerializer #用serializer_class抓取Serializer中對應的資料，因為get_serializer_class有判斷式，因此會自動抓取對應資料
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs): #配置網路切片實例
         """
             Allocate Network Slice Subnet Instance.
 
