@@ -75,19 +75,19 @@ class GenericTemplateView(MultipleSerializerViewSet):
     """
     queryset = GenericTemplate.objects.all() #用queryset抓取GenericTemplate的Model資料
     serializer_class = MultipleSerializerViewSet.get_serializer_class #用serializer_class抓取Serializer中對應的資料，因為get_serializer_class有判斷式，因此會自動抓取對應資料
-
+  
     @staticmethod
-    def check(request, content, filename):
+    def check(request, content, filename): #檢查通用樣板是否已經存在
         # Check content isn't exist Content
-        for query in Content.objects.all(): #迴圈query抓取Content的資料
-            if str(content['topology_template']) in query.topology_template and \ #如果content的topology_template欄位轉成的字串在 query 的 topology_templatey 資料集中
-                    request.data['nfvoType'] in query.templateId.nfvoType: #以及 request 的 nfvoType 欄位的值在 query 的 templateId.nfvoType 欄位資料中
+        for query in Content.objects.all(): #迴圈query抓取Content的資料(Content Model為已存在的通用樣板資料)
+            if str(content['topology_template']) in query.topology_template and \ #如果content的topology_template欄位轉成的字串在 query 的 topology_templatey 資料重複
+                    request.data['nfvoType'] in query.templateId.nfvoType: #以及request的nfvoType欄位的與query的templateId.nfvoType欄位資料重複
                 response = {
                     OperationStatus.OPERATION_FAILED: request.data[
-                                                          'templateType'] + ' is exist ' + filename} #若上述條件成立，則 response 為 Enums OperationStatus 的 OPERATION_FAILED
+                                                          'templateType'] + ' is exist ' + filename} #若上述條件成立，則response為Enums OperationStatus的 OPERATION_FAILED，代表操作失敗
                 return response #返回response值
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs): #列出通用樣板
         """
             Query Generic Template information.
 
@@ -95,7 +95,7 @@ class GenericTemplateView(MultipleSerializerViewSet):
         """
         return super().list(request, *args, **kwargs) #利用super()呼叫GenericTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用list
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs): #創建通用樣板
         """
             Create a new individual Generic Template resource.
 
@@ -103,7 +103,7 @@ class GenericTemplateView(MultipleSerializerViewSet):
         """
         return super().create(request, *args, **kwargs) #利用super()呼叫GenericTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用create
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs): #配置通用樣板
         """
             Read information about an individual Generic Template resource.
 
@@ -111,7 +111,7 @@ class GenericTemplateView(MultipleSerializerViewSet):
         """
         return super().retrieve(request, *args, **kwargs) #利用super()呼叫GenericTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用retrieve
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs): #更新通用樣板
         """
             Update information about an individual Generic Template resource.
 
@@ -119,24 +119,24 @@ class GenericTemplateView(MultipleSerializerViewSet):
         """
         return super().update(request, *args, **kwargs) #利用super()呼叫GenericTemplateView基礎類別MultipleSerializerViewSet的get_serializer_class方法，使用update
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs): #刪除通用樣板
         """
             Delete an individual Generic Template.
 
             The DELETE method deletes an individual Generic Template resource.
         """
-        file = self.get_object().templateFile #self.get_object().templateFile抓取GenericTemplate Model的templateFile
-        if file:
+        file = self.get_object().templateFile #self.get_object().templateFile抓取GenericTemplate Model的templateFile，抓取通用樣板檔案
+        if file: #若通用樣板檔案存在
             file_folder = os.path.join( #利用os.path.join()函數，組合多個路徑，以抓取完整檔案路徑
                 settings.MEDIA_ROOT, #有了上面這個路由設置，我們就可以在瀏覽器的地址欄根據media文件夾中文件的路徑去訪問對應的文件了
                 os.path.dirname(str(self.get_object().templateFile)),
                 str(self.get_object().templateId)
             )
             shutil.rmtree(file_folder) #shutil.rmtree path指向file_folder目錄，刪除整個資料夾樹，也就是，它可以刪除資料夾下的所有檔案和子資料夾。
-            file.delete()
-        return super().destroy(request, *args, **kwargs)
+            file.delete() #刪除檔案
+        return super().destroy(request, *args, **kwargs) #回傳super().destroy項目，以便之後使用
 
-    def upload(self, request, *args, **kwargs):
+    def upload(self, request, *args, **kwargs): #上傳通用樣板
         """
             Upload a Generic Template by providing the content of the Generic Template.
 
@@ -147,11 +147,11 @@ class GenericTemplateView(MultipleSerializerViewSet):
             request.data['templateType'],
             str(kwargs['pk'])
         )
-        generic_template_obj = self.get_object()
+        generic_template_obj = self.get_object() #用generic_template_obj抓取GenericTemplate Model資料
         # Delete old Content related
         for relate_obj in self.get_object().content_set.all(): #查看關聯的內容數據
-            file = self.get_object().templateFile
-            file.delete()
+            file = self.get_object().templateFile #宣告file為GenericTemplate Model的templateFile
+            file.delete() #刪除檔案
             self.get_object().content_set.remove(relate_obj) #刪除舊的關聯資料
             
         with zipfile.ZipFile(request.data['templateFile']) as _zipfile: #利用zipfile.ZipFile()函數將request.data['templateFile']轉為zip檔，並宣告為_zipfile
@@ -182,6 +182,8 @@ class GenericTemplateView(MultipleSerializerViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'], url_path='example_download/(?P<example>(.)*)/(?P<path>(.)*)')
+    
+    #通用樣板範例
     def example_download(self, request, *args, **kwargs):
         """
             Download an individual Generic Template.
@@ -194,7 +196,7 @@ class GenericTemplateView(MultipleSerializerViewSet):
         #     with download_query[0].templateFile.open() as f:
         #         return HttpResponse(f.read(), content_type="application/zip")
         # else:
-        example_file = os.path.join(settings.BASE_DIR, 'nssmf', 'template_example',
+        example_file = os.path.join(settings.BASE_DIR, 'nssmf', 'template_example', #宣告example_file檔案路徑
                                     kwargs['example'], kwargs['path'].split('/')[0])
         os.chdir(example_file) #e/ 更換路徑到example_file檔案目錄
 
