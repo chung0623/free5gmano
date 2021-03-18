@@ -288,14 +288,14 @@ class ProvisioningView(GenericViewSet, mixins.CreateModelMixin, mixins.DestroyMo
 
             Allocate a new individual Network Slice Subnet Instance
         """
-        data = request.data['attributeListIn']
-        response_data = dict()
+        data = request.data['attributeListIn'] #宣告data為request的attributeListIn欄位資料
+        response_data = dict() #宣告response_data為空字典
         try:
-            response_data['status'] = OperationStatus.OPERATION_FAILED
-            if data['using_existed']:
-                check_query = SliceTemplate.objects.filter(instanceId=data['using_existed'])
+            response_data['status'] = OperationStatus.OPERATION_FAILED #將response_data宣告，key值為status，value為OPERATION_FAILED
+            if data['using_existed']: #若data狀態為'using_existed'
+                check_query = SliceTemplate.objects.filter(instanceId=data['using_existed']) #宣告check_query為SliceTemplate中instanceId=data['using_existed']的物件
                 for query in check_query:
-                    query.instanceId.remove(data['using_existed'])
+                    query.instanceId.remove(data['using_existed']) #
             unit_query = SliceTemplate.objects.get(templateId=data['nsstid'])
             slice_serializer = ServiceMappingPluginRelationSerializer(unit_query)
             generic_templates = slice_serializer.data['genericTemplates']
